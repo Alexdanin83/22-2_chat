@@ -8,12 +8,21 @@
   const messageContentInput = addMessageForm.querySelector(`#message-content`);
 
   let userName='';
+  const socket = io();
+  //przyjęcie
+  //socket.on('message', (event) => addMessage(event.author, event.content))
+  socket.on('message', ({ author, content }) => addMessage(author, content));
+  socket.on('join', ({ user, content }) => addMessage(user, content));
+  socket.on('removeUser', ({ user, content }) => addMessage(user, content));
+  //wysłanie
+  //socket.emit('message', { author: 'John Doe', content: 'Lorem Ipsum' });
 
   const loginFormSubmit = (event) =>{
     event.preventDefault();
     if (userNameInput.value !='')
     { userName=userNameInput.value;
       //console.log('nie puste',userName);
+       socket.emit('join', { id: socket.id, user: userName,})
       loginForm.classList.remove('show');
       messagesSection.classList.add('show');
   }
@@ -23,13 +32,14 @@
 }
 loginForm.addEventListener('submit', loginFormSubmit);
 
-
-
 const sendMessage = (event) =>{
   event.preventDefault();
-  if (addMessageInput.value !='')
-  { addMessage(userName, addMessageInput.value);
-    addMessageInput.value ='';
+  let messageContent = addMessageInput.value;
+
+  if(messageContent!= '')
+  { addMessage(userName, messageContent);
+     socket.emit('message', { author: userName, content: messageContent })
+    messageContent ='';
     //console.log('nie puste',userName);
 
 }
@@ -38,7 +48,6 @@ const sendMessage = (event) =>{
 }
 }
 addMessageForm.addEventListener('submit', sendMessage);
-
 
 function addMessage(author, content) {
   const message = document.createElement('li');
@@ -53,5 +62,6 @@ function addMessage(author, content) {
   `;
   messagesList.appendChild(message);
 }
+
 
 }
